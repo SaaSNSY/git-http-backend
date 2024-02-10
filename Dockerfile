@@ -1,7 +1,6 @@
-# small is beautiful
-FROM alpine:latest
+FROM nginx:latest
 
-MAINTAINER Anthony Hogg anthony@hogg.fr
+MAINTAINER Neil Youngman neil.youngman@googlemail.com
 
 # The container listens on port 80, map as needed
 EXPOSE 80
@@ -14,12 +13,9 @@ VOLUME ["/git"]
 # - git-daemon, because that gets us the git-http-backend CGI script
 # - fcgiwrap, because that is how nginx does CGI
 # - spawn-fcgi, to launch fcgiwrap and to create the unix socket
-# - nginx, because it is our frontend
-RUN apk add --update nginx && \
-    apk add --update git-daemon && \
-    apk add --update fcgiwrap && \
-    apk add --update spawn-fcgi && \
-    rm -rf /var/cache/apk/*
+RUN apt-get update
+RUN apt-get install -y git-daemon-run fcgiwrap spawn-fcgi
+RUN rm -rf /var/cache/apt/*
 
 COPY nginx.conf /etc/nginx/nginx.conf
 
@@ -27,5 +23,5 @@ COPY nginx.conf /etc/nginx/nginx.conf
 # so the container doesn't die on us; supposedly we should be
 # using supervisord or something like that instead, but this
 # will do
-CMD spawn-fcgi -s /run/fcgi.sock /usr/bin/fcgiwrap && \
+CMD spawn-fcgi -s /run/fcgi.sock /usr/sbin/fcgiwrap && \
     nginx -g "daemon off;"
